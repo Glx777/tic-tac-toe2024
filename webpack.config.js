@@ -27,7 +27,8 @@ module.exports = (env, argv) => ({
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			template: './public/index.html'
+			template: './public/index.html',
+			favicon: './public/tic-tac-toe.png'
 		})
 	]
 })
