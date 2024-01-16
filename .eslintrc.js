@@ -39,6 +39,7 @@ module.exports = {
 		'better-styled-components',
 		'react-hooks'
 	],
+	'ignorePatterns': ['dist'],
 	'rules': {
 		'react/react-in-jsx-scope': 'off',
 		'indent': [
@@ -67,6 +68,7 @@ module.exports = {
 		'comma-dangle': ['error', 'never'],
 		'better-styled-components/sort-declarations-alphabetically': 2,
 		'react-hooks/rules-of-hooks': 'error',
-		'react-hooks/exhaustive-deps': 'warn'
+		'react-hooks/exhaustive-deps': 'warn',
+		'no-multi-spaces': 'error'
 	}
 }

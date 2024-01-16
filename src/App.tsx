@@ -1,10 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components'
 
 const StyledApp = styled.div`
 	align-items: center;
 	background: linear-gradient(90deg, rgba(2,0,36,1) 4%, rgba(90,47,163,1) 52%, rgba(184,89,226,1) 100%);
-    background: rgb(2,0,36);
     display: flex;
 	flex-direction: column;
 	justify-content: center;
@@ -24,7 +23,8 @@ const Row = styled.div`
 
 const Cell = styled.div`
     align-items: center;
-    border: 1px solid #fff;
+    border: 2px solid #fff;
+	border-radius: 5px;
     color: #FFFAF0;
     display: flex;
     font-size: 250px;
@@ -39,38 +39,66 @@ enum Turns {
     O = 'O'
 }
 
+const defaultCounterTime = 5
+
+const getTitle = (isWon: boolean, isDraw: boolean, turn: Turns, count: number): string => {
+	if (isWon) {
+		return `The winner is: ${turn} (Next game in ${count})`
+	}
+
+	if (isDraw) {
+		return `Draw (Next game in ${count})`
+	}
+
+	return `Next turn: ${turn}`
+}
+
 export const App = () => {
 	const [turn, setTurn] = useState<Turns>(Turns.X)
 	const [moves, setMoves] = useState<string[][]>([['', '', ''], ['', '', ''], ['', '', '']])
 	const [isWon, setIsWon] = useState(false)
 	const [isDraw, setIsDraw] = useState(false)
-
-	const handleClick = (rowNumber: number, cellNumber: number) => {
-		if (moves[rowNumber][cellNumber] === Turns.X || moves[rowNumber][cellNumber] === Turns.O || isWon || isDraw) {
-			return
-		}
-
-		const movesCopy = [...moves]
-
-		movesCopy[rowNumber][cellNumber] = turn === Turns.X ? Turns.X : Turns.O
-		setMoves(movesCopy)
-
-		calculateWinner()
-	}
+	const [count, setCount] = useState(defaultCounterTime)
 
 	const resetGame = () => {
 		setMoves([['', '', ''], ['', '', ''], ['', '', '']])
 		setTurn(Turns.X)
 		setIsDraw(false)
 		setIsWon(false)
+		setCount(defaultCounterTime)
 	}
+
+	const handleClick = (rowNumber: number, cellNumber: number) => {
+		if (!moves[rowNumber][cellNumber] && !isWon && !isDraw) {
+			const movesCopy = [...moves]
+
+			movesCopy[rowNumber][cellNumber] = turn === Turns.X ? Turns.X : Turns.O
+			setMoves(movesCopy)
+
+			calculateWinner()
+		}
+	}
+
+	useEffect(() => {
+		if (isDraw || isWon) {
+			const timer = setInterval(() => {
+				setCount(count => count - 1)
+
+				if (count === 0) clearInterval(timer)
+			}, 1000)
+
+			return () => {
+				clearInterval(timer)
+			}
+		}
+
+	}, [isDraw, isWon, count])
 
 	const calculateWinner = () => {
 		const xWin = Turns.X.repeat(3)
 		const oWin = Turns.O.repeat(3)
 
-		const isDraw = !moves.flat().includes('')
-		console.log('here', isDraw, moves.flat(), isWon)
+		const isDraw = !moves.flat().includes('') && !isWon
 
 		for (let i = 0; i < 3; i++) {
 			if (
@@ -84,23 +112,20 @@ export const App = () => {
                 moves[0][2] + moves[1][1] + moves[2][0] === oWin
 			) {
 				setIsWon(true)
-				setTimeout(() => resetGame(), 5000)
+				setTimeout(() => resetGame(), defaultCounterTime * 1000)
 				break
 			} else if (isDraw) {
 				setIsDraw(true)
-				setTimeout(() => resetGame(), 5000)
-			} else {
+				setTimeout(() => resetGame(), defaultCounterTime * 1000)
+			} else if (i === 2 && !isDraw && !isWon) {
 				setTurn(turn === Turns.X ? Turns.O : Turns.X)
 			}
 		}
 	}
 
-	const title = isWon ? `The winner is: ${turn}`  : `Next turn: ${turn}`
-
 	return (
 		<StyledApp>
-			{!isDraw && <Title>{title}</Title>}
-			{isDraw && <Title>Draw</Title>}
+			<Title>{getTitle(isWon, isDraw, turn, count)}</Title>
 			<Row>
 				<Cell onClick={() => handleClick(0, 0)}>{moves[0][0]}</Cell>
 				<Cell onClick={() => handleClick(0, 1)}>{moves[0][1]}</Cell>
