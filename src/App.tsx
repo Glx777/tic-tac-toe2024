@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import styled from 'styled-components'
+import { Title } from './Title'
+import { GameView } from './GameView'
 
 const StyledApp = styled.div`
 	align-items: center;
@@ -11,47 +13,12 @@ const StyledApp = styled.div`
 	min-width: 100%;
 `
 
-const Title = styled.h1`
-    color: #FFFAF0;
-    font-size: 50px;
-    margin-bottom: 30px;
-`
-
-const Row = styled.div`
-    display: flex;
-`
-
-const Cell = styled.div`
-    align-items: center;
-    border: 2px solid #fff;
-	border-radius: 5px;
-    color: #FFFAF0;
-    display: flex;
-    font-size: 250px;
-    height: 200px;
-    justify-content: center;
-	user-select: none;
-    width: 200px;
-`
-
-enum Turns {
+export enum Turns {
     X = 'X',
     O = 'O'
 }
 
 const defaultCounterTime = 5
-
-const getTitle = (isWon: boolean, isDraw: boolean, turn: Turns, count: number): string => {
-	if (isWon) {
-		return `The winner is: ${turn} (Next game in ${count})`
-	}
-
-	if (isDraw) {
-		return `Draw (Next game in ${count})`
-	}
-
-	return `Next turn: ${turn}`
-}
 
 export const App = () => {
 	const [turn, setTurn] = useState<Turns>(Turns.X)
@@ -124,23 +91,9 @@ export const App = () => {
 	}
 
 	return (
-		<StyledApp>
-			<Title>{getTitle(isWon, isDraw, turn, count)}</Title>
-			<Row>
-				<Cell onClick={() => handleClick(0, 0)}>{moves[0][0]}</Cell>
-				<Cell onClick={() => handleClick(0, 1)}>{moves[0][1]}</Cell>
-				<Cell onClick={() => handleClick(0, 2)}>{moves[0][2]}</Cell>
-			</Row>
-			<Row>
-				<Cell onClick={() => handleClick(1, 0)}>{moves[1][0]}</Cell>
-				<Cell onClick={() => handleClick(1, 1)}>{moves[1][1]}</Cell>
-				<Cell onClick={() => handleClick(1, 2)}>{moves[1][2]}</Cell>
-			</Row>
-			<Row>
-				<Cell onClick={() => handleClick(2, 0)}>{moves[2][0]}</Cell>
-				<Cell onClick={() => handleClick(2, 1)}>{moves[2][1]}</Cell>
-				<Cell onClick={() => handleClick(2, 2)}>{moves[2][2]}</Cell>
-			</Row>
+		<StyledApp data-testid="app">
+			<Title isWon={isWon} isDraw={isDraw} count={count} turn={turn} />
+			<GameView handleClick={handleClick} moves={moves} />
 		</StyledApp>
 	)
 }
