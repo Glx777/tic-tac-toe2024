@@ -20,75 +20,79 @@ export enum Turns {
 
 const defaultCounterTime = 5
 
+const winPossibilities: number[][] = [
+	[0, 1, 2],
+	[3, 4, 5],
+	[6, 7, 8],
+	[0, 3, 6],
+	[1, 4, 7],
+	[2, 5, 8],
+	[0, 4, 8],
+	[2, 4, 6]
+]
+
 export const App = () => {
-	const [turn, setTurn] = useState<Turns>(Turns.X)
-	const [moves, setMoves] = useState<string[][]>([['', '', ''], ['', '', ''], ['', '', '']])
+	const [turn, setTurn] = useState(Turns.X)
+	const [moves, setMoves] = useState<string[]>(new Array(9).fill(''))
 	const [isWon, setIsWon] = useState(false)
 	const [isDraw, setIsDraw] = useState(false)
 	const [count, setCount] = useState(defaultCounterTime)
 
 	const resetGame = () => {
-		setMoves([['', '', ''], ['', '', ''], ['', '', '']])
+		setMoves(new Array(9).fill(''))
 		setTurn(Turns.X)
 		setIsDraw(false)
 		setIsWon(false)
 		setCount(defaultCounterTime)
 	}
 
-	const handleClick = (rowNumber: number, cellNumber: number) => {
-		if (!moves[rowNumber][cellNumber] && !isWon && !isDraw) {
-			const movesCopy = [...moves]
-
-			movesCopy[rowNumber][cellNumber] = turn === Turns.X ? Turns.X : Turns.O
-			setMoves(movesCopy)
-
-			calculateWinner()
-		}
-	}
-
 	useEffect(() => {
 		if (isDraw || isWon) {
-			const timer = setInterval(() => {
-				setCount(count => count - 1)
+			const timer = setInterval(() => setCount(count - 1), 1000)
 
-				if (count === 0) clearInterval(timer)
-			}, 1000)
-
-			return () => {
-				clearInterval(timer)
-			}
+			return () => clearInterval(timer)
 		}
 
 	}, [isDraw, isWon, count])
 
-	const calculateWinner = () => {
+	const handleClick = (cellNumber: number) => {
+		if (!moves[cellNumber] && !isWon && !isDraw) {
+			const movesCopy = [...moves]
+
+			movesCopy[cellNumber] = turn === Turns.X ? Turns.X : Turns.O
+			setMoves(movesCopy)
+			calculateWinner(movesCopy)
+		}
+	}
+
+	const calculateWinner = (moves: string[]) => {
 		const xWin = Turns.X.repeat(3)
 		const oWin = Turns.O.repeat(3)
-
 		const isDraw = !moves.flat().includes('') && !isWon
 
-		for (let i = 0; i < 3; i++) {
-			if (
-				moves[i][0] + moves[i][1] + moves[i][2] === xWin ||
-                moves[i][0] + moves[i][1] + moves[i][2] === oWin ||
-                moves[0][i] + moves[1][i] + moves[2][i] === xWin ||
-                moves[0][i] + moves[1][i] + moves[2][i] === oWin ||
-                moves[0][0] + moves[1][1] + moves[2][2] === xWin ||
-                moves[0][2] + moves[1][1] + moves[2][0] === xWin ||
-                moves[0][0] + moves[1][1] + moves[2][2] === oWin ||
-                moves[0][2] + moves[1][1] + moves[2][0] === oWin
-			) {
-				setIsWon(true)
-				setTimeout(() => resetGame(), defaultCounterTime * 1000)
-				break
-			} else if (isDraw) {
-				setIsDraw(true)
-				setTimeout(() => resetGame(), defaultCounterTime * 1000)
-			} else if (i === 2 && !isDraw && !isWon) {
-				setTurn(turn === Turns.X ? Turns.O : Turns.X)
+		for (let i = 0; i < winPossibilities.length; i++) {
+			let value = ''
+
+			for (let j = 0; j < winPossibilities[i].length; j++) {
+				value += moves[winPossibilities[i][j]]
+				if (j === 2) {
+					if (value === xWin || value === oWin) {
+						setIsWon(true)
+						setTimeout(() => resetGame(), defaultCounterTime * 1000)
+					} else if (isDraw) {
+						setIsDraw(true)
+						setTimeout(() => resetGame(), defaultCounterTime * 1000)
+					}
+				}
 			}
 		}
 	}
+
+	useEffect(() => {
+		if (!isWon && !isDraw && moves.flat().join('')) {
+			setTurn(turn => turn === Turns.X ? Turns.O : Turns.X)
+		}
+	}, [isWon, isDraw, moves])
 
 	return (
 		<StyledApp data-testid="app">
